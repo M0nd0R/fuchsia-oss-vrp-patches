@@ -2,52 +2,56 @@
 
 Skip replies for the two duplicates (EapolTx WRITE, SAE AUTH read).
 
----
+## Upstream Gerrit CLs (uploaded 2026-08-19, awaiting Code-Review +2 / CQ merge)
 
-## Template (fill Gerrit CL when merged upstream)
+| Finding | Gerrit CL |
+|---------|-----------|
+| assoc-ies-oob | https://fuchsia-review.googlesource.com/c/fuchsia/+/1769953 |
+| ssid-ie-oob | https://fuchsia-review.googlesource.com/c/fuchsia/+/1766637 |
+| escan-ie-oob | https://fuchsia-review.googlesource.com/c/fuchsia/+/1766638 |
+| sae-frametx-stack-vla | https://fuchsia-review.googlesource.com/c/fuchsia/+/1769954 |
+| qmi-short-frame | https://fuchsia-review.googlesource.com/c/fuchsia/+/1769557 |
+| kgsl-exec-oob | https://fuchsia-review.googlesource.com/c/fuchsia/+/1769973 |
+| fastrpc-vmo-oob | https://fuchsia-review.googlesource.com/c/fuchsia/+/1769993 |
 
-```
-Hi — thank you for the review. A committed fix for this issue is available.
-
-Merged patch artifact (separate PR for this finding only):
-<PR_URL>
-
-Unified diff against fuchsia (apply with git am):
-https://github.com/M0nd0R/fuchsia-oss-vrp-patches/blob/main/findings/<NAME>/patch/<PATCH_FILE>
-
-I am also uploading this change to fuchsia-review.googlesource.com. I will reply again with the merged Gerrit CL URL once CQ lands it on fuchsia main.
-
-Please reopen / reconsider once the upstream merge is confirmed. Thank you.
-```
+Topic: `oss-vrp-security-fixes`  
+Dashboard: https://fuchsia-review.googlesource.com/q/owner:self+is:open
 
 ---
 
-## Ready replies (GitHub PR already merged)
+## Paste on each VRP report (replace CL URL)
 
-### Assoc IE lengths (`fuchsia-assoc-ies-oob`)
-PR: https://github.com/M0nd0R/fuchsia-oss-vrp-patches/pull/1  
-Patch: https://github.com/M0nd0R/fuchsia-oss-vrp-patches/blob/main/findings/assoc-ies-oob/patch/0001-brcmfmac-Clamp-assoc-IE-lengths-before-alloc_and_cop.patch
+```
+Hi — thank you for the review. A committed fix for this finding has been uploaded to the fuchsia Gerrit tree (separate CL for this issue only):
 
-### SSID TLV (`fuchsia-ssid-ie-oob`)
-PR: https://github.com/M0nd0R/fuchsia-oss-vrp-patches/pull/2  
-Patch: https://github.com/M0nd0R/fuchsia-oss-vrp-patches/blob/main/findings/ssid-ie-oob/patch/0001-brcmfmac-Bound-TLV-walk-in-brcmf_find_ssid_in_ies.patch
+<GERRIT_CL_URL>
 
-### Escan IE (`fuchsia-escan-ie-oob`)
-PR: https://github.com/M0nd0R/fuchsia-oss-vrp-patches/pull/3  
-Patch: https://github.com/M0nd0R/fuchsia-oss-vrp-patches/blob/main/findings/escan-ie-oob/patch/0001-brcmfmac-Validate-BSS-ie_offset-ie_length-in-inform_.patch
+It is open for Code-Review / CQ. I will reply again once it is merged to fuchsia main.
 
-### SaeFrameTx VLA (`fuchsia-sae-frametx-stack-vla`)
-PR: https://github.com/M0nd0R/fuchsia-oss-vrp-patches/pull/4  
-Patch: https://github.com/M0nd0R/fuchsia-oss-vrp-patches/blob/main/findings/sae-frametx-stack-vla/patch/0001-brcmfmac-Cap-SaeFrameTx-payload-and-avoid-stack-VLA.patch
+Please reopen / reconsider once the merge lands. Thank you.
+```
 
-### QMI short frame (`fuchsia-qmi-short-frame`)
-PR: https://github.com/M0nd0R/fuchsia-oss-vrp-patches/pull/5  
-Patch: https://github.com/M0nd0R/fuchsia-oss-vrp-patches/blob/main/findings/qmi-short-frame/patch/0001-qmi-usb-transport-Return-after-short-Ethernet-TX-fra.patch
+---
 
-### KGSL / Magma (`fuchsia-kgsl-exec-oob`)
-PR: https://github.com/M0nd0R/fuchsia-oss-vrp-patches/pull/6  
-Patch: https://github.com/M0nd0R/fuchsia-oss-vrp-patches/blob/main/findings/kgsl-exec-oob/patch/0001-kgsl-magma-Validate-ExecResource-offset-length-again.patch
+## Ready replies
 
-### FastRPC VMO (`fuchsia-fastrpc-vmo-oob`)
-PR: https://github.com/M0nd0R/fuchsia-oss-vrp-patches/pull/7  
-Patch: https://github.com/M0nd0R/fuchsia-oss-vrp-patches/blob/main/findings/fastrpc-vmo-oob/patch/0001-fastrpc-Reject-mapped-VmoArgument-ranges-past-VMO-si.patch
+### Assoc IE lengths
+https://fuchsia-review.googlesource.com/c/fuchsia/+/1769953
+
+### SSID TLV
+https://fuchsia-review.googlesource.com/c/fuchsia/+/1766637
+
+### Escan IE
+https://fuchsia-review.googlesource.com/c/fuchsia/+/1766638
+
+### SaeFrameTx VLA
+https://fuchsia-review.googlesource.com/c/fuchsia/+/1769954
+
+### QMI short frame
+https://fuchsia-review.googlesource.com/c/fuchsia/+/1769557
+
+### KGSL / Magma
+https://fuchsia-review.googlesource.com/c/fuchsia/+/1769973
+
+### FastRPC VMO
+https://fuchsia-review.googlesource.com/c/fuchsia/+/1769993

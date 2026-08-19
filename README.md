@@ -26,3 +26,16 @@ Fuchsia does **not** merge GitHub PRs. Official path:
 3. Get Code-Review +2 / CQ; reply on the VRP report with the **merged Gerrit CL** URL
 
 Cookie / SSO for googlesource is required for Gerrit upload (not available in this environment).
+
+
+## Upstream Gerrit CLs
+
+| Finding | CL |
+|---------|----|
+| assoc-ies-oob | https://fuchsia-review.googlesource.com/c/fuchsia/+/1769953 |
+| ssid-ie-oob | https://fuchsia-review.googlesource.com/c/fuchsia/+/1766637 |
+| escan-ie-oob | https://fuchsia-review.googlesource.com/c/fuchsia/+/1766638 |
+| sae-frametx-stack-vla | https://fuchsia-review.googlesource.com/c/fuchsia/+/1769954 |
+| qmi-short-frame | https://fuchsia-review.googlesource.com/c/fuchsia/+/1769557 |
+| kgsl-exec-oob | https://fuchsia-review.googlesource.com/c/fuchsia/+/1769973 |
+| fastrpc-vmo-oob | https://fuchsia-review.googlesource.com/c/fuchsia/+/1769993 |
