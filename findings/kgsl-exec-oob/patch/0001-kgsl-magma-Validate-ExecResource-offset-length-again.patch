@@ -1,0 +1,78 @@
+From cce25f0203ed79853686c6561ce326df835edefd Mon Sep 17 00:00:00 2001
+From: mundur <nmondoo97@gmail.com>
+Date: Wed, 19 Aug 2026 01:57:51 +0000
+Subject: [PATCH] [kgsl][magma] Validate ExecResource offset+length against
+ buffer size
+
+Starnix KGSL built Magma exec resources from attacker-controlled
+gpuaddr/offset/size without ensuring the range fits the GPU object.
+Magma ExecuteCommandBuffers also skipped per-resource range checks.
+Reject out-of-range resources in both layers.
+
+Test: oversized offset+size must return EINVAL before Magma MSD submit
+Bug: None
+Change-Id: I41d5f82156bb787df47d855d29a1744789e191d4
+---
+ .../sys_driver/magma_system_context.cc        |  8 +++++++
+ src/starnix/modules/kgsl/file.rs              | 24 ++++++++++++++++++-
+ 2 files changed, 31 insertions(+), 1 deletion(-)
+
+diff --git a/src/graphics/magma/lib/magma_service/sys_driver/magma_system_context.cc b/src/graphics/magma/lib/magma_service/sys_driver/magma_system_context.cc
+index aa2802d6684..8eca3146590 100644
+--- a/src/graphics/magma/lib/magma_service/sys_driver/magma_system_context.cc
++++ b/src/graphics/magma/lib/magma_service/sys_driver/magma_system_context.cc
+@@ -37,6 +37,14 @@ magma::Status MagmaSystemContext::ExecuteCommandBuffers(
+                             "ExecuteCommandBuffer: exec resource has invalid buffer handle");
+     }
+ 
++    if (resource.offset > buffer->size() ||
++        resource.length > buffer->size() - resource.offset) {
++      return MAGMA_DRET_MSG(MAGMA_STATUS_INVALID_ARGS,
++                            "ExecuteCommandBuffer: exec resource offset+length out of range "
++                            "(offset=0x%lx length=0x%lx size=0x%lx)",
++                            resource.offset, resource.length, buffer->size());
++    }
++
+     system_resources.push_back(buffer);
+     msd_buffers.push_back(buffer->msd_buf());
+   }
+diff --git a/src/starnix/modules/kgsl/file.rs b/src/starnix/modules/kgsl/file.rs
+index c07e9429696..004e2792e7c 100644
+--- a/src/starnix/modules/kgsl/file.rs
++++ b/src/starnix/modules/kgsl/file.rs
+@@ -605,9 +605,31 @@ impl KgslFile {
+                             log_error!("kgsl: {} gpuaddr {:#x} not found", kind, obj.gpuaddr);
+                             errno!(EINVAL)
+                         })?;
++                    let base_off = obj.gpuaddr.checked_sub(gpuobj.gpuaddr).ok_or_else(|| {
++                        log_error!("kgsl: {} gpuaddr underflow", kind);
++                        errno!(EINVAL)
++                    })?;
++                    let offset = base_off.checked_add(obj.offset).ok_or_else(|| {
++                        log_error!("kgsl: {} offset overflow", kind);
++                        errno!(EINVAL)
++                    })?;
++                    let end = offset.checked_add(obj.size).ok_or_else(|| {
++                        log_error!("kgsl: {} size overflow", kind);
++                        errno!(EINVAL)
++                    })?;
++                    if end > gpuobj.size {
++                        log_error!(
++                            "kgsl: {} range [{:#x},{:#x}) exceeds object size {:#x}",
++                            kind,
++                            offset,
++                            end,
++                            gpuobj.size
++                        );
++                        return error!(EINVAL);
++                    }
+                     Ok(kgsl_libmagma::ExecResource {
+                         buffer: gpuobj.buffer.clone(),
+-                        offset: (obj.gpuaddr - gpuobj.gpuaddr) + obj.offset,
++                        offset,
+                         length: obj.size,
+                     })
+                 })
+-- 
+2.47.3
+
