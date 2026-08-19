@@ -1,24 +1,28 @@
-# Fuchsia OSS VRP — separate security fix patches
+# Fuchsia OSS VRP — separate fix patches (non-duplicates)
 
-**Skipped (VRP duplicates):** EapolTx heap WRITE; SAE AUTH short-frame OOB read.
+Tracking repo for **one merged PR per finding**. Skipped VRP duplicates:
 
-Fuchsia’s official merge path is **Gerrit** (`fuchsia-review.googlesource.com`), not GitHub.
-Each branch below is a standalone fix (one commit / one patch) ready to upload with:
+- Heap OOB **WRITE** in `brcmf_if_eapol_req` / EapolTx
+- Heap OOB **Read** in brcmfmac SAE AUTH handler
 
-```bash
-# from a fuchsia checkout at the analyzed revision
-git am path/to/0001-....patch
-git push origin HEAD:refs/for/main
-```
+## Merged PRs (this repo)
 
-| Branch | Finding package | Fix |
-|--------|-----------------|-----|
-| `fix/assoc-ies-oob` | fuchsia-assoc-ies-oob | Clamp assoc IE lengths |
-| `fix/ssid-ie-oob` | fuchsia-ssid-ie-oob | Bound SSID TLV walk |
-| `fix/escan-ie-oob` | fuchsia-escan-ie-oob | Validate BSS ie_offset/length |
-| `fix/sae-frametx-stack-vla` | fuchsia-sae-frametx-stack-vla | Cap SaeFrameTx / no stack VLA |
-| `fix/qmi-short-frame` | fuchsia-qmi-short-frame | Return after short ETH TX |
-| `fix/kgsl-exec-oob` | fuchsia-kgsl-exec-oob | KGSL+Magma offset+length checks |
-| `fix/fastrpc-vmo-oob` | fuchsia-fastrpc-vmo-oob | FastRPC VmoArgument bounds |
+| Finding | PR | Patch path |
+|---------|----|------------|
+| Assoc IE uncapped lengths | [#1](https://github.com/M0nd0R/fuchsia-oss-vrp-patches/pull/1) | `findings/assoc-ies-oob/` |
+| SSID TLV walk OOB | [#2](https://github.com/M0nd0R/fuchsia-oss-vrp-patches/pull/2) | `findings/ssid-ie-oob/` |
+| Escan BSS ie_offset/length | [#3](https://github.com/M0nd0R/fuchsia-oss-vrp-patches/pull/3) | `findings/escan-ie-oob/` |
+| SaeFrameTx stack VLA | [#4](https://github.com/M0nd0R/fuchsia-oss-vrp-patches/pull/4) | `findings/sae-frametx-stack-vla/` |
+| QMI short Ethernet TX | [#5](https://github.com/M0nd0R/fuchsia-oss-vrp-patches/pull/5) | `findings/qmi-short-frame/` |
+| KGSL + Magma ExecResource bounds | [#6](https://github.com/M0nd0R/fuchsia-oss-vrp-patches/pull/6) | `findings/kgsl-exec-oob/` |
+| FastRPC VmoArgument bounds | [#7](https://github.com/M0nd0R/fuchsia-oss-vrp-patches/pull/7) | `findings/fastrpc-vmo-oob/` |
 
-Tree revision analyzed: `cc9d1f42c490350fe3803782523d2ee2ecd50187`
+## Upstream merge (required by Google OSS VRP)
+
+Fuchsia does **not** merge GitHub PRs. Official path:
+
+1. Apply `findings/<name>/patch/0001-*.patch` on fuchsia @ `main`
+2. `git push origin HEAD:refs/for/main` to [fuchsia-review.googlesource.com](https://fuchsia-review.googlesource.com)
+3. Get Code-Review +2 / CQ; reply on the VRP report with the **merged Gerrit CL** URL
+
+Cookie / SSO for googlesource is required for Gerrit upload (not available in this environment).
