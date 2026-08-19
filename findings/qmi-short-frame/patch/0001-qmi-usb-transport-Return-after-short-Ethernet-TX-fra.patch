@@ -1,0 +1,35 @@
+From 43599c794816b4459570f781a634ec7746cfe9b6 Mon Sep 17 00:00:00 2001
+From: mundur <nmondoo97@gmail.com>
+Date: Wed, 19 Aug 2026 01:57:50 +0000
+Subject: [PATCH] [qmi-usb-transport] Return after short Ethernet TX frame drop
+
+Previously EthernetImplQueueTx logged and counted undersized frames but
+continued, causing size_t underflow of eth_payload_len and OOB header
+reads. Complete the TX and return ZX_ERR_INVALID_ARGS instead.
+
+Test: host underflow PoC path no longer continues past the short-frame check
+Bug: None
+Change-Id: I64b332c117f71c4812b4875c66d913ccd3bfeb86
+---
+ .../telephony/drivers/qmi-usb-transport/qmi-usb-transport.cc | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/src/connectivity/telephony/drivers/qmi-usb-transport/qmi-usb-transport.cc b/src/connectivity/telephony/drivers/qmi-usb-transport/qmi-usb-transport.cc
+index 9867d41cda8..1837c29b93c 100644
+--- a/src/connectivity/telephony/drivers/qmi-usb-transport/qmi-usb-transport.cc
++++ b/src/connectivity/telephony/drivers/qmi-usb-transport/qmi-usb-transport.cc
+@@ -350,6 +350,11 @@ void Device::EthernetImplQueueTx(uint32_t options, ethernet_netbuf_t* netbuf,
+   if (length < kEthFrameHdrSize) {
+     zxlogf(ERROR, "qmi-usb-transport: tx eth frame too short (length: %zx) ", length);
+     eth_tx_stats_.eth_dropped_cnt += 1;
++    txn_info_t* txn = containerof(netbuf, txn_info_t, netbuf);
++    txn->completion_cb = completion_cb;
++    txn->cookie = cookie;
++    complete_txn(txn, ZX_ERR_INVALID_ARGS);
++    return;
+   }
+   size_t eth_payload_len = length - kEthFrameHdrSize;
+ 
+-- 
+2.47.3
+
