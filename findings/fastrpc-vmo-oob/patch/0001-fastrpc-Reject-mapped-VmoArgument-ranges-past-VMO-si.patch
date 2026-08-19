@@ -1,0 +1,43 @@
+From 7470ce597347f2fdbf75e22fba332602d2abb882 Mon Sep 17 00:00:00 2001
+From: mundur <nmondoo97@gmail.com>
+Date: Wed, 19 Aug 2026 01:57:52 +0000
+Subject: [PATCH] [fastrpc] Reject mapped VmoArgument ranges past VMO size
+
+Mapped FastRPC invoke forwarded remote_buf.len as VmoArgument.length
+without checking offset+length against the DMA-buf VMO size. Validate
+before sending arguments to SecureFastRpc.
+
+Test: mapped invoke with len > vmo_size returns EINVAL
+Bug: None
+Change-Id: I76c1094aad00aac5ef9bcab333c0316fcf5f727f
+---
+ src/starnix/modules/fastrpc/fastrpc.rs | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/src/starnix/modules/fastrpc/fastrpc.rs b/src/starnix/modules/fastrpc/fastrpc.rs
+index 0fd41860821..47326e545da 100644
+--- a/src/starnix/modules/fastrpc/fastrpc.rs
++++ b/src/starnix/modules/fastrpc/fastrpc.rs
+@@ -674,6 +674,19 @@ impl FastRPCFile {
+                     fd_vmos,
+                     merged_buffer.buffer_index,
+                 )?;
++                let vmo_size = vmo
++                    .get_size()
++                    .map_err(|e| zx_status_to_errno("get_payload_info vmo get_size", e))?;
++                let end = offset.checked_add(buf.len).ok_or_else(|| errno!(EOVERFLOW))?;
++                if end > vmo_size {
++                    log_error!(
++                        "FastRPC mapped VmoArgument out of range: offset={:#x} len={:#x} vmo_size={:#x}",
++                        offset,
++                        buf.len,
++                        vmo_size
++                    );
++                    return error!(EINVAL);
++                }
+                 (
+                     frpc::ArgumentEntry::VmoArgument(frpc::VmoArgument {
+                         vmo,
+-- 
+2.47.3
+
