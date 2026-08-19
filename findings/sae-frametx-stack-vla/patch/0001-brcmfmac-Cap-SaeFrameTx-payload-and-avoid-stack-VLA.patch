@@ -1,0 +1,46 @@
+From 8fc2f12cfe52da701e73725b34c90518dbf1eafe Mon Sep 17 00:00:00 2001
+From: mundur <nmondoo97@gmail.com>
+Date: Wed, 19 Aug 2026 01:57:48 +0000
+Subject: [PATCH] [brcmfmac] Cap SaeFrameTx payload and avoid stack VLA
+
+Reject oversized sae_fields before building assoc_mgr_cmd and allocate the
+command buffer on the heap instead of an unbounded stack VLA.
+
+Test: host logic / existing driver unit coverage for length validation paths
+Bug: None
+Change-Id: I179ca81e0b99f8c93b010db5ae9b361372cbf5a3
+---
+ .../third_party/broadcom/brcmfmac/cfg80211.cc   | 17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
+
+diff --git a/src/connectivity/wlan/drivers/third_party/broadcom/brcmfmac/cfg80211.cc b/src/connectivity/wlan/drivers/third_party/broadcom/brcmfmac/cfg80211.cc
+index 7be253e5799..12bc65328f4 100644
+--- a/src/connectivity/wlan/drivers/third_party/broadcom/brcmfmac/cfg80211.cc
++++ b/src/connectivity/wlan/drivers/third_party/broadcom/brcmfmac/cfg80211.cc
+@@ -6309,11 +6309,18 @@ zx_status_t brcmf_if_sae_frame_tx(net_device* ndev,
+   }
+ 
+   // Mac header(24 bytes) + Auth frame header(6 bytes) + sae_fields length.
+-  uint32_t frame_size =
+-      sizeof(wlan::MgmtFrameHeader) + sizeof(wlan::Authentication) + frame->sae_fields().size();
+-  // Carry the SAE authentication frame in the last field of assoc_mgr_cmd.
+-  uint32_t cmd_buf_len = sizeof(assoc_mgr_cmd_t) + frame_size;
+-  uint8_t cmd_buf[cmd_buf_len];
++  // Cap against DCMD max so we do not allocate an unbounded stack VLA sized to FIDL :MAX.
++  const size_t sae_fields_len = frame->sae_fields().size();
++  const uint32_t frame_size = static_cast<uint32_t>(sizeof(wlan::MgmtFrameHeader) +
++                                                   sizeof(wlan::Authentication) + sae_fields_len);
++  const uint32_t cmd_buf_len = static_cast<uint32_t>(sizeof(assoc_mgr_cmd_t) + frame_size);
++  if (cmd_buf_len > BRCMF_DCMD_MAXLEN || frame_size < sae_fields_len) {
++    BRCMF_ERR("SaeFrameTx payload too large: sae_fields=%zu cmd_buf_len=%u", sae_fields_len,
++              cmd_buf_len);
++    return ZX_ERR_INVALID_ARGS;
++  }
++  std::vector<uint8_t> cmd_buf_storage(cmd_buf_len);
++  uint8_t* cmd_buf = cmd_buf_storage.data();
+   assoc_mgr_cmd_t* cmd = reinterpret_cast<assoc_mgr_cmd_t*>(cmd_buf);
+   cmd->version = ASSOC_MGR_CURRENT_VERSION;
+   // As the description of "length" field in this structure, it should be used to store the length
+-- 
+2.47.3
+
