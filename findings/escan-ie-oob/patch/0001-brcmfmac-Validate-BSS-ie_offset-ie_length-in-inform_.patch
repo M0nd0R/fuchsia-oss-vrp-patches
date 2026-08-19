@@ -1,0 +1,37 @@
+From e3265aaafe952f44c5ca200d1fcfdebac2aba88e Mon Sep 17 00:00:00 2001
+From: mundur <nmondoo97@gmail.com>
+Date: Wed, 19 Aug 2026 01:57:47 +0000
+Subject: [PATCH] [brcmfmac] Validate BSS ie_offset/ie_length in
+ inform_single_bss
+
+Reject scan BSS info entries whose IE region is outside bi->length before
+passing IEs to SME.
+
+Test: host logic / existing driver unit coverage for length validation paths
+Bug: None
+Change-Id: Ib214a14560f9a796e2b8daf12424a0509f8438d0
+---
+ .../wlan/drivers/third_party/broadcom/brcmfmac/cfg80211.cc | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/src/connectivity/wlan/drivers/third_party/broadcom/brcmfmac/cfg80211.cc b/src/connectivity/wlan/drivers/third_party/broadcom/brcmfmac/cfg80211.cc
+index 7be253e5799..fcb65ad1d8e 100644
+--- a/src/connectivity/wlan/drivers/third_party/broadcom/brcmfmac/cfg80211.cc
++++ b/src/connectivity/wlan/drivers/third_party/broadcom/brcmfmac/cfg80211.cc
+@@ -3300,6 +3300,13 @@ static zx_status_t brcmf_inform_single_bss(struct net_device* ndev, struct brcmf
+     return ZX_OK;
+   }
+ 
++  // Reject BSS infos whose IE region extends past the BSS info blob.
++  if (bi->ie_offset > bi->length || bi->ie_length > bi->length - bi->ie_offset) {
++    BRCMF_ERR("Invalid BSS IE range: ie_offset=%u ie_length=%u bi->length=%u", bi->ie_offset,
++              bi->ie_length, bi->length);
++    return ZX_ERR_IO_DATA_INTEGRITY;
++  }
++
+   if (!bi->ctl_ch) {
+     bi->ctl_ch = chanspec_to_primary_channel_number(&cfg->d11inf, bi->chanspec).number;
+   } else {
+-- 
+2.47.3
+
